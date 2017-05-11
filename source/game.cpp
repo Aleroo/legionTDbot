@@ -601,12 +601,11 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 	// we could have inserted an incomplete record on creation and updated it later but this makes for a cleaner interface
 
 
-	
 
 	if( m_GameLoading || m_GameLoaded )
 
 	{
-		
+
 		// todotodo: since we store players that crash during loading it's possible that the stats classes could have no information on them
 
 		// that could result in a DBGamePlayer without a corresponding DBDotAPlayer - just be aware of the possibility
@@ -688,6 +687,7 @@ void CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string payload )
 
 {
+	bool ping_done = false;
 
 	bool HideCommand = CBaseGame :: EventPlayerBotCommand( player, command, payload );
 
@@ -1032,7 +1032,32 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			}
 
-			
+			//
+
+			// !CLAN PUSS
+
+			//
+
+			if( Command == "rio" || Command == "stu" || Command == "ich" || Command == "one" || Command == "duke")
+			{
+				if(Command == "rio"){
+					SendAllChat("Rio is the boss");
+				}
+				else if(Command == "stu"){
+					SendAllChat("Stu > Rio");
+				}
+				else if(Command == "ich"){
+					SendAllChat("Ich is shaman O>O");
+				}
+				else if(Command == "one"){
+					SendAllChat("oNe is the best :)");
+				}	
+				else if(Command == "duke"){
+					SendAllChat("DUKE is o.O");
+				}
+				
+			}
+
 			//
 
 			// !AUTOSAVE
@@ -2500,7 +2525,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				// we only do this if the game hasn't started since we don't want to kick players from a game in progress
 
-
+				ping_done = true;
 
 				uint32_t Kicked = 0;
 
@@ -3330,33 +3355,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 	*********************/
 
-//
-
-			// !CLAN PUSS
-
-			//
-
-			if( Command == "rio" || Command == "stu" || Command == "ich" || Command == "one" || Command == "duke")
-			{
-				if(Command == "rio"){
-					SendAllChat("Rio is the boss");
-				}
-				else if(Command == "stu"){
-					SendAllChat("Stu likes to MERC");
-				}
-				else if(Command == "ich"){
-					SendAllChat("Ich steals Mercedes and BMWs");
-				}
-				else if(Command == "one"){
-					SendAllChat("oNe is the best :)");
-				}	
-				else if(Command == "duke"){
-					SendAllChat("DUKE will ban you!");
-				}
-				
-			}
-
-
 	// !VOTESTART
     //
  
@@ -3419,6 +3417,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 		SendChat( player, m_GHost->m_Language->CheckedPlayer( User, player->GetNumPings( ) > 0 ? UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + "ms" : "N/A", m_GHost->m_DBLocal->FromCheck( UTIL_ByteArrayToUInt32( player->GetExternalIP( ), true ) ), AdminCheck || RootAdminCheck ? "Yes" : "No", IsOwner( User ) ? "Yes" : "No", player->GetSpoofed( ) ? "Yes" : "No", player->GetSpoofedRealm( ).empty( ) ? "N/A" : player->GetSpoofedRealm( ), player->GetReserved( ) ? "Yes" : "No" ) );
 
+	if ( ( Command == "ping") && !ping_done )
+			SendChat( player, player->GetNumPings( ) > 0 ? UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + "ms" : "N/A" );
 
 
 	if( Command == "hi" || Command == "hello")
@@ -3430,6 +3430,46 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			SendAllChat("Hello! Would you like to be admin? Contact MrRio!");
 		}
 	}
+
+	//
+	// !GAMETIME
+	//
+
+	else if( Command == "gametime" )
+	{
+		string MinString = UTIL_ToString( ( m_GameTicks / 1000 ) / 60 );
+		string SecString = UTIL_ToString( ( m_GameTicks / 1000 ) % 60 );
+
+		if( MinString.size( ) == 1 )
+			MinString.insert( 0, "0" );
+
+		if( SecString.size( ) == 1 )
+			SecString.insert( 0, "0" );
+		
+		SendChat( player, "Current game time: " + UTIL_ToString( m_GameTicks ) + " ms (" + MinString + "m" + SecString + "s" + ")." );
+	}
+
+
+	
+
+
+
+	//
+	// !NOLAG
+	//
+
+	else if( Command == "nolag" && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	{
+		player->SetNoLag( !player->GetNoLag( ) );
+		
+		if( player->GetNoLag( ) )
+			SendAllChat( "No lag has been enabled for player [" + player->GetName( ) + "]." );
+		else
+			SendAllChat( "No lag has been disabled for player [" + player->GetName( ) + "]." );
+
+		player->SetStatsDotASentTime( GetTime( ) );
+	}
+
 
 	//
 
